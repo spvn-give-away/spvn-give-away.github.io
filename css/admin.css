@@ -1,0 +1,11 @@
+body.admin {
+  background:radial-gradient(circle at top,#2b0000,#0b0000);
+}
+
+.admin-panel {
+  max-width:400px;
+  margin:2rem auto;
+  display:flex;
+  flex-direction:column;
+  gap:.8rem;
+}

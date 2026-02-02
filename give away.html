@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Contest Dashboard</title>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+  <style>
+    :root{--p:#4f9cff;--a:#7cf3d0;--g:rgba(255,255,255,.12)}
+    body{margin:0;min-height:100vh;font-family:system-ui,Segoe UI,sans-serif;
+      background:radial-gradient(circle at top,#18233f,#0b1022);color:#fff}
+    header{text-align:center;padding:1.5rem}
+    main{max-width:1100px;margin:auto;padding:1rem}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem}
+    .card{background:var(--g);backdrop-filter:blur(16px);border-radius:22px;padding:1.5rem;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+    h1,h2{margin-top:0}
+    .prize{margin:.5rem 0;padding:.7rem;border-radius:12px;background:rgba(255,255,255,.08)}
+    .wheel-wrap{display:flex;flex-direction:column;align-items:center}
+    canvas{background:#0b1022;border-radius:50%;margin-top:1rem}
+    .winner{margin-top:1rem;font-size:1.2rem;font-weight:700;color:#7cf3d0}
+    footer{text-align:center;opacity:.6;font-size:.8rem;padding:1rem}
+
+    /* ===== BUTTON SYSTEM ===== */
+    button{
+      appearance:none;
+      border:none;
+      border-radius:14px;
+      padding:.9rem 1.1rem;
+      font-size:.95rem;
+      font-weight:600;
+      cursor:pointer;
+      color:#0b1022;
+      background:linear-gradient(135deg,var(--a),var(--p));
+      box-shadow:0 8px 20px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.4);
+      transition:transform .18s ease, box-shadow .18s ease, filter .18s ease;
+    }
+
+    button:hover{
+      transform:translateY(-2px);
+      box-shadow:0 14px 28px rgba(0,0,0,.45);
+      filter:brightness(1.05);
+    }
+
+    button:active{
+      transform:translateY(0);
+      box-shadow:0 6px 14px rgba(0,0,0,.4);
+      filter:brightness(.95);
+    }
+
+    input{
+      background:rgba(255,255,255,.12);
+      color:#fff;
+      border:none;
+      border-radius:12px;
+      padding:.8rem 1rem;
+      outline:none;
+      backdrop-filter:blur(8px);
+    }
+
+    input::placeholder{color:rgba(255,255,255,.6)}
+
+    @media(max-width:900px){.grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Live Giveaway Dashboard</h1>
+  <p>Results update in real time</p>
+</header>
+
+<main>
+  <div class="grid">
+
+    <section class="card">
+      <h2>Prize Rounds</h2>
+      <div class="prize"><strong>Round 1:</strong> Surprise Merchandise</div>
+      <div class="prize"><strong>Round 2:</strong> Premium Rewards</div>
+      <div class="prize"><strong>Final Round:</strong> Grand Prize</div>
+    </section>
+
+    <section class="card wheel-wrap">
+      <h2>Live Spin Wheel</h2>
+      <canvas id="wheel" width="300" height="300"></canvas>
+      <div class="winner" id="winnerText">Waiting for admin…</div>
+    </section>
+
+    <section class="card">
+      <h2>System Status</h2>
+      <ul id="statusList" style="font-size:.9rem;opacity:.9"></ul>
+      <button id="loadJson">Load users from JSON</button>
+    </section>
+
+  </div>
+</main>
+
+<footer>© 2026 School Giveaway Committee</footer>
+
+<script>
+  /* ================= FIREBASE ================= */
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT.firebaseapp.com",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_PROJECT.appspot.com",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId: "YOUR_APP_ID"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  /* ================= STATE ================= */
+  const canvas = document.getElementById('wheel');
+  const ctx = canvas.getContext('2d');
+  const winnerText = document.getElementById('winnerText');
+  const statusList = document.getElementById('statusList');
+
+  let users = [];
+  let angle = 0;
+  let spinning = true;
+
+  function status(msg, ok=true){
+    const li=document.createElement('li');
+    li.textContent=(ok?'✅ ':'❌ ')+msg;
+    statusList.appendChild(li);
+  }
+
+  /* ================= DRAW WHEEL ================= */
+  function drawWheel(){
+    const r = canvas.width / 2;
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    if(!users.length){
+      ctx.beginPath();
+      ctx.arc(r,r,r,0,Math.PI*2);
+      ctx.fillStyle = '#1c2b4a';
+      ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.textAlign = 'center';
+      ctx.fillText('No users', r, r);
+      return;
+    }
+
+    const slice = (Math.PI*2)/users.length;
+
+    users.forEach((u,i)=>{
+      ctx.beginPath();
+      ctx.moveTo(r,r);
+      ctx.arc(r,r,r,angle+i*slice,angle+(i+1)*slice);
+      ctx.fillStyle = i%2 ? '#4f9cff' : '#7cf3d0';
+      ctx.fill();
+
+      ctx.save();
+      ctx.translate(r,r);
+      ctx.rotate(angle+(i+0.5)*slice);
+      ctx.textAlign='right';
+      ctx.fillStyle='#000';
+      ctx.fillText(u.name || 'Unnamed', r-10, 4);
+      ctx.restore();
+    });
+  }
+
+  function animate(){
+    if(spinning) angle += 0.01;
+    drawWheel();
+    requestAnimationFrame(animate);
+  }
+
+  /* ================= FIRESTORE MODE ================= */
+function enableFirestore() {
+  // USERS
+  db.collection('users')
+    .where('eliminated', '==', false)
+    .onSnapshot(
+      snap => {
+        users = snap.docs.map(d => d.data());
+        status(`Loaded users from Firestore (${users.length})`);
+      },
+      err => status('Firestore users failed', false)
+    );
+
+  // ADMIN STATE (READ ONLY)
+  db.collection('admin')
+    .doc('state')
+    .onSnapshot(
+      doc => {
+        if (!doc.exists) return;
+
+        const data = doc.data();
+        spinning = !!data.spinActive;
+
+        if (data.currentWinner) {
+          winnerText.innerText = `Winner: ${data.currentWinner}`;
+        }
+      },
+      err => status('Admin state read failed', false)
+    );
+}
+
+
+  /* ================= JSON FALLBACK MODE ================= */
+  async function loadFromJson(){
+    try{
+      const res = await fetch('users.json');
+      const data = await res.json();
+      users = data.users || [];
+      spinning = true;
+      status('Loaded users from JSON ('+users.length+')');
+    }catch(e){
+      status('JSON load failed',false);
+    }
+  }
+
+  document.getElementById('loadJson').onclick = loadFromJson;
+
+  /* ================= START ================= */
+  enableFirestore();
+  animate();
+
+  /* ================= TESTS ================= */
+  console.assert(typeof drawWheel==='function','drawWheel OK');
+  console.assert(Array.isArray(users),'users array');
+</script>
+
+</body>
+</html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin Panel</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/admin.css">
+
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+</head>
+<body class="admin">
+
+<header>
+  <h1>🛠 Admin Control</h1>
+  <p>Authorized access only</p>
+</header>
+
+<main class="card admin-panel">
+  <button id="startSpin">▶ Start Spin</button>
+  <button id="stopSpin">⏸ Stop Spin</button>
+  <button id="nextRound">➡ Next Round</button>
+
+  <input id="winnerInput" placeholder="Force winner name">
+  <button id="setWinner">🏆 Set Winner</button>
+</main>
+
+<script src="js/firebase.js"></script>
+<script>
+  const adminRef = db.collection('admin').doc('state');
+
+startSpin.onclick = () => {
+  adminRef.set({ spinActive: true }, { merge: true });
+};
+
+stopSpin.onclick = () => {
+  adminRef.set({ spinActive: false }, { merge: true });
+};
+
+setWinner.onclick = () => {
+  adminRef.set({
+    currentWinner: winnerInput.value,
+    spinActive: false
+  }, { merge: true });
+};
+
+
+</script>
+</body>
+</html>
