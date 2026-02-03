@@ -23,16 +23,8 @@
 <p>dont have an account <a href="sign up.html">sign in</a></p>
 </main>
 
-<script>
-async function login(){
-  const res=await fetch('accounts.json');
-  const db=await res.json();
-  const ok=db.users.find(x=>x.u===u.value&&x.p===p.value);
-  if(!ok) return alert('Invalid');
-  localStorage.setItem('loggedUser',ok.u);
-  location.href='index.html';
-}
-</script>
+<script src="auth.js"></script>
 
 </body>
 </html>
+
