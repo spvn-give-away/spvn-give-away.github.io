@@ -75,14 +75,6 @@
 
 <main>
   <div class="grid">
-
-    <section class="card">
-      <h2>Prize Rounds</h2>
-      <div class="prize"><strong>Round 1:</strong> Surprise Merchandise</div>
-      <div class="prize"><strong>Round 2:</strong> Premium Rewards</div>
-      <div class="prize"><strong>Final Round:</strong> Grand Prize</div>
-    </section>
-
     <section class="card wheel-wrap">
       <h2>Live Spin Wheel</h2>
       <canvas id="wheel" width="300" height="300"></canvas>
@@ -90,9 +82,10 @@
     </section>
 
     <section class="card">
-      <h2>System Status</h2>
-      <ul id="statusList" style="font-size:.9rem;opacity:.9"></ul>
-      <button id="loadJson">Load users from JSON</button>
+      <h2>Prize Rounds</h2>
+      <div class="prize"><strong>Round 1:</strong> Surprise Merchandise</div>
+      <div class="prize"><strong>Round 2:</strong> Premium Rewards</div>
+      <div class="prize"><strong>Final Round:</strong> Grand Prize</div>
     </section>
 
   </div>
@@ -103,14 +96,13 @@
 <script>
   /* ================= FIREBASE ================= */
   const firebaseConfig = {
-  apiKey: "AIzaSyCjeK2-hXcsxQ25QCWaSYt1mzS_mWdrG2E",
-  authDomain: "project-1640118831593628871.firebaseapp.com",
-  projectId: "project-1640118831593628871",
-  storageBucket: "project-1640118831593628871.firebasestorage.app",
-  messagingSenderId: "1014217672368",
-  appId: "1:1014217672368:web:f2e28931956bceae055d75",
-  measurementId: "G-2CZHNH3DNB"
-};
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT.firebaseapp.com",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_PROJECT.appspot.com",
+    messagingSenderId: "YOUR_SENDER_ID",
+    appId: "YOUR_APP_ID"
+  };
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
 
@@ -216,12 +208,10 @@ function enableFirestore() {
     }
   }
 
-  document.getElementById('loadJson').onclick = loadFromJson;
 
   /* ================= START ================= */
-  enableFirestore();
+  loadFromJson();
   animate();
-
   /* ================= TESTS ================= */
   console.assert(typeof drawWheel==='function','drawWheel OK');
   console.assert(Array.isArray(users),'users array');
@@ -229,4 +219,3 @@ function enableFirestore() {
 
 </body>
 </html>
-
